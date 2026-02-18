@@ -1,0 +1,31 @@
+{
+  "name": "habitai-backend",
+  "version": "1.0.0",
+  "description": "HabitAI Local Backend Server (SQLite + Express)",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "habitai",
+    "habit-tracker",
+    "express",
+    "sqlite",
+    "backend",
+    "nodejs"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
+    "express": "^4.19.2",
+    "openai": "^6.22.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
