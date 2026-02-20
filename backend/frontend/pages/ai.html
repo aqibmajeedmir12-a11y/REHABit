@@ -1,0 +1,166 @@
+<!-- ══════════════ ANALYTICS PAGE ══════════════ -->
+<div class="page" id="page-analytics">
+
+  <canvas id="progressChart" style="display:none;"></canvas>
+
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Analytics</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Deep dive into your habit performance</p>
+
+  <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card c-purple">
+      <div class="stat-icon c-purple"><i class="fa fa-chart-bar"></i></div>
+      <div class="stat-value" id="an-weekly">0%</div>
+      <div class="stat-label">Weekly Rate</div>
+    </div>
+    <div class="stat-card c-blue">
+      <div class="stat-icon c-blue"><i class="fa fa-calendar-check"></i></div>
+      <div class="stat-value" id="an-completed">0</div>
+      <div class="stat-label">Total Completions</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-icon c-green"><i class="fa fa-clock"></i></div>
+      <div class="stat-value" id="an-start">--</div>
+      <div class="stat-label">Avg Start Time</div>
+    </div>
+    <div class="stat-card c-amber">
+      <div class="stat-icon c-amber"><i class="fa fa-star"></i></div>
+      <div class="stat-value" id="an-grade">--</div>
+      <div class="stat-label">Consistency Grade</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Weekly Completion</div>
+      </div>
+      <div id="bar-chart"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Category Breakdown</div>
+      </div>
+      <div class="donut-wrap">
+        <svg width="120" height="120" style="transform:rotate(-90deg)">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="14"/>
+          <circle id="donut1" cx="60" cy="60" r="50" fill="none" stroke-width="14" stroke-dasharray="314" stroke-dashoffset="314"/>
+          <circle id="donut2" cx="60" cy="60" r="50" fill="none" stroke-width="14" stroke-dasharray="314" stroke-dashoffset="314"/>
+          <circle id="donut3" cx="60" cy="60" r="50" fill="none" stroke-width="14" stroke-dasharray="314" stroke-dashoffset="314"/>
+        </svg>
+        <div id="donut-legend"></div>
+      </div>
+    </div>
+
+    <div class="card col-span-2">
+      <div class="card-header">
+        <div class="card-title">Heatmap</div>
+      </div>
+      <div id="full-heatmap"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Top Streaks</div>
+      </div>
+      <div id="top-streaks"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Best Time</div>
+      </div>
+      <div id="time-chart"></div>
+    </div>
+  </div>
+
+</div><!-- /page-analytics -->
+
+<!-- ══════════════ ACHIEVEMENTS PAGE ══════════════ -->
+<div class="page" id="page-achievements">
+
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Achievements</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Earn badges by building consistent habits</p>
+
+  <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+    <div class="stat-card c-amber">
+      <div class="stat-icon c-amber">🏆</div>
+      <div class="stat-value" id="ach-unlocked">0</div>
+      <div class="stat-label">Unlocked</div>
+    </div>
+    <div class="stat-card c-purple">
+      <div class="stat-icon c-purple"><i class="fa fa-lock"></i></div>
+      <div class="stat-value" id="ach-locked">0</div>
+      <div class="stat-label">Locked</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-icon c-green"><i class="fa fa-percent"></i></div>
+      <div class="stat-value" id="ach-completion">0%</div>
+      <div class="stat-label">Completion</div>
+    </div>
+    <div class="stat-card c-blue">
+      <div class="stat-icon c-blue">⚡</div>
+      <div class="stat-value" id="ach-xp">0</div>
+      <div class="stat-label">Total XP</div>
+    </div>
+  </div>
+
+  <div class="ach-grid" id="ach-grid"></div>
+
+</div><!-- /page-achievements -->
+
+<!-- ══════════════ CALENDAR PAGE ══════════════ -->
+<div class="page" id="page-calendar">
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Monthly Calendar</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Visual habit completion tracking</p>
+  <div id="calendar-grid" class="calendar-grid"></div>
+</div><!-- /page-calendar -->
+
+<!-- ══════════════ SETTINGS PAGE ══════════════ -->
+<div class="page" id="page-settings">
+
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Settings</h2>
+  <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Customize your HabitAI experience</p>
+
+  <div style="max-width:560px;display:flex;flex-direction:column;gap:14px">
+
+    <div class="card">
+      <div class="card-header" style="margin-bottom:16px">
+        <div class="card-title">
+          <div class="card-title-icon" style="background:rgba(124,58,237,.15);color:var(--purple-light)"><i class="fa fa-user"></i></div>
+          Profile
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Display Name</label>
+        <input class="form-input" value="Alex Johnson" id="set-name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Daily Goal (habits)</label>
+        <input class="form-input" type="number" value="6" min="1" max="20" id="set-goal">
+      </div>
+      <button class="btn btn-primary" onclick="saveSettings()"><i class="fa fa-save"></i> Save Changes</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="margin-bottom:16px">
+        <div class="card-title">
+          <div class="card-title-icon" style="background:rgba(245,158,11,.15);color:var(--amber)"><i class="fa fa-bell"></i></div>
+          Notifications
+        </div>
+      </div>
+      <div id="settings-toggles"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="margin-bottom:16px">
+        <div class="card-title">
+          <div class="card-title-icon" style="background:rgba(239,68,68,.15);color:var(--red)"><i class="fa fa-trash"></i></div>
+          Danger Zone
+        </div>
+      </div>
+      <button class="btn btn-danger" onclick="resetProgress()"><i class="fa fa-rotate-left"></i> Reset All Progress</button>
+    </div>
+
+  </div>
+</div><!-- /page-settings -->

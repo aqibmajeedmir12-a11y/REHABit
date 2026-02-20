@@ -16,7 +16,7 @@ async function callOllama(prompt){
         "Content-Type":"application/json"
       },
       body:JSON.stringify({
-        model:"llama3",
+        model:"phi3",
         prompt:prompt,
         stream:false
       })
@@ -159,5 +159,27 @@ ${goal}
 });
 
 
+
+
+// GET AI Insights
+router.get("/insights", async (req, res) => {
+  try {
+    const data = req.query.data || "No habit data";
+
+    // Dummy AI response (replace with real AI later)
+    const insights = `
+      Based on your habits:
+      • Improve consistency
+      • Avoid streak breaks
+      • Focus on daily completion
+    `;
+
+    res.json({ insights });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to generate insights" });
+  }
+});
 
 module.exports = router;

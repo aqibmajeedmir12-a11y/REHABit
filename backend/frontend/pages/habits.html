@@ -1,0 +1,35 @@
+<!-- ══════════════ HABITS PAGE ══════════════ -->
+<div class="page" id="page-habits">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+    <div>
+      <h2 style="font-size:18px;font-weight:700">All Habits</h2>
+      <p style="font-size:13px;color:var(--muted);margin-top:3px">Manage and track your routines</p>
+    </div>
+    <div style="display:flex;gap:10px">
+      <select class="form-select" id="habit-filter" style="width:auto;padding:9px 13px;font-size:13px" onchange="renderHabitsPage()">
+        <option value="all">All Categories</option>
+        <option value="Mind">Mind</option>
+        <option value="Health">Health</option>
+        <option value="Fitness">Fitness</option>
+        <option value="Learn">Learn</option>
+        <option value="Custom">Custom</option>
+      </select>
+      <button class="btn btn-primary" onclick="openModal()"><i class="fa fa-plus"></i> Add Habit</button>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card" style="padding:16px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Total Habits</div>
+      <div style="font-size:24px;font-weight:800" id="hp-total">0</div>
+    </div>
+    <div class="card" style="padding:16px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Active Streaks</div>
+      <div style="font-size:24px;font-weight:800;color:var(--amber)" id="hp-streaks">0</div>
+    </div>
+  </div>
+
+  <div id="habits-list"></div>
+
+</div><!-- /page-habits -->

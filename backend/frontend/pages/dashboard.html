@@ -1,0 +1,183 @@
+<!-- ══════════════ DASHBOARD PAGE ══════════════ -->
+<div class="page active" id="page-dashboard">
+
+  <!-- GREETING BANNER -->
+  <div class="greeting-banner" id="greeting-banner">
+    <div class="greeting-text">
+      <h2 id="greeting-msg">Good morning! 👋</h2>
+      <p id="greeting-sub">Ready to build great habits today?</p>
+    </div>
+    <div class="greeting-emoji" id="greeting-emoji">🌅</div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stats-row">
+    <div class="stat-card c-purple">
+      <div class="stat-icon c-purple"><i class="fa fa-fire"></i></div>
+      <div class="stat-value" id="s-streak">0</div>
+      <div class="stat-label">Day Streak</div>
+      <div class="stat-delta up"><i class="fa fa-arrow-up"></i> 3 days this month</div>
+    </div>
+    <div class="stat-card c-blue">
+      <div class="stat-icon c-blue"><i class="fa fa-check-double"></i></div>
+      <div class="stat-value" id="s-done">0</div>
+      <div class="stat-label">Completed Today</div>
+      <div class="stat-delta up" id="s-done-delta"><i class="fa fa-arrow-up"></i> Let's go!</div>
+    </div>
+    <div class="stat-card c-green">
+      <div class="stat-icon c-green"><i class="fa fa-percent"></i></div>
+      <div class="stat-value" id="s-rate">0%</div>
+      <div class="stat-label">Completion Rate</div>
+      <div class="stat-delta up"><i class="fa fa-arrow-up"></i> 12% this week</div>
+    </div>
+    <div class="stat-card c-amber">
+      <div class="stat-icon c-amber"><i class="fa fa-bolt"></i></div>
+      <div class="stat-value" id="s-xp">0</div>
+      <div class="stat-label">Total XP</div>
+      <div class="stat-delta up"><i class="fa fa-arrow-up"></i> 340 XP this week</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid-main">
+
+    <!-- TODAY HABITS -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title-icon" style="background:rgba(34,197,94,.15);color:var(--green)"><i class="fa fa-check-circle"></i></div>
+          Today's Habits
+        </div>
+        <span class="card-action" onclick="goTo('habits')">Manage all →</span>
+      </div>
+      <div id="dash-habits"></div>
+    </div>
+
+    <!-- STREAK -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title-icon" style="background:rgba(245,158,11,.15)">🔥</div>
+          Current Streak
+        </div>
+        <span class="card-action" onclick="goTo('analytics')">History →</span>
+      </div>
+      <div class="streak-display">
+        <div class="streak-fire">🔥</div>
+        <div class="streak-number" id="dash-streak">0</div>
+        <div class="streak-label">Days in a row</div>
+        <div class="streak-best">🏆 Best: <span id="dash-best">0</span> days</div>
+        <div class="week-dots" id="dash-wdots"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <!-- RING -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-title-icon" style="background:rgba(59,130,246,.15);color:var(--blue)"><i class="fa fa-chart-pie"></i></div>
+            Productivity
+          </div>
+        </div>
+        <div class="ring-wrap">
+          <svg width="150" height="150">
+            <circle cx="75" cy="75" r="60" stroke="rgba(255,255,255,.07)" stroke-width="12" fill="none"/>
+            <circle id="dash-ring" cx="75" cy="75" r="60" stroke="url(#rg1)" stroke-width="12" fill="none"
+              stroke-dasharray="377" stroke-dashoffset="377" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="rg1" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#7c3aed"/>
+                <stop offset="100%" stop-color="#3b82f6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-pct" id="dash-score">0%</div>
+            <div class="ring-sub">Done today</div>
+          </div>
+        </div>
+        <div id="dash-ring-stats"></div>
+      </div>
+
+      <!-- LEVEL -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <div class="card-title-icon" style="background:rgba(236,72,153,.15)">🏆</div>
+            Level Progress
+          </div>
+          <span class="card-action" onclick="goTo('achievements')">Badges →</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <div>
+            <div style="font-size:15px;font-weight:700">Level <span id="dash-level">1</span></div>
+            <div style="font-size:12px;color:var(--purple-light)" id="dash-level-name">Achiever</div>
+          </div>
+          <div style="margin-left:auto;text-align:right">
+            <div style="font-size:13px;font-weight:700" id="dash-xp-disp">0 XP</div>
+            <div style="font-size:11px;color:var(--muted)">of 3000 XP</div>
+          </div>
+        </div>
+        <div class="xp-bar-w"><div class="xp-bar-f" id="dash-xpfill" style="width:0%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)">
+          <span style="color:var(--text);font-weight:600" id="dash-xp-text">0 XP</span>
+          <span>660 XP to Level 8</span>
+        </div>
+        <div class="badge-row">
+          <div class="badge-item" title="Streak Master"><div class="be">🔥</div><p>Streak</p></div>
+          <div class="badge-item" title="Speed Runner"><div class="be">⚡</div><p>Speed</p></div>
+          <div class="badge-item" title="Focused Mind"><div class="be">🎯</div><p>Focus</p></div>
+          <div class="badge-item" title="Diamond Habit"><div class="be">💎</div><p>Diamond</p></div>
+          <div class="badge-item locked" title="Locked"><div class="be">🌟</div><p>Star</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI INSIGHT -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title-icon" style="background:rgba(124,58,237,.15);color:var(--purple-light)"><i class="fa fa-brain"></i></div>
+          AI Insights
+        </div>
+        <span class="card-action" onclick="goTo('insights')">More →</span>
+      </div>
+      <div class="ai-bubble">
+        <div class="ai-badge"><i class="fa fa-sparkles"></i> AI Analysis</div>
+        <div class="ai-text" id="dash-quote"></div>
+        <div class="chips">
+          <div class="chip purple">💤 Sleep pattern</div>
+          <div class="chip blue">📈 Trending up</div>
+          <div class="chip green">✅ On track</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEATMAP -->
+    <div class="card col-span-2">
+      <div class="card-header">
+        <div class="card-title">
+          <div class="card-title-icon" style="background:rgba(124,58,237,.15);color:var(--purple-light)"><i class="fa fa-calendar-days"></i></div>
+          Consistency Heatmap — 6 Months
+        </div>
+        <span class="card-action" onclick="goTo('analytics')">Full analytics →</span>
+      </div>
+      <div id="dash-heatmap"></div>
+      <div class="hm-legend">
+        <span>Less</span>
+        <div class="hm-legend-cells">
+          <div class="hm-cell"></div>
+          <div class="hm-cell" data-l="1"></div>
+          <div class="hm-cell" data-l="2"></div>
+          <div class="hm-cell" data-l="3"></div>
+          <div class="hm-cell" data-l="4"></div>
+        </div>
+        <span>More</span>
+      </div>
+    </div>
+
+  </div><!-- /grid-main -->
+</div><!-- /page-dashboard -->
