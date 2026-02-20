@@ -9,6 +9,7 @@ const habitRoutes    = require("./routes/habitRoutes");
 const scheduleRoutes = require("./routes/scheduleRoutes");
 const aiRoutes       = require("./routes/aiRoutes");
 const xpRoutes       = require("./routes/xpRoutes");
+const featuresRoutes = require("./routes/featuresRoutes");
 
 const app = express();
 
@@ -17,7 +18,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 
-/* ── STATIC FILES FIRST — before any route ── */
+/* ── STATIC FILES FIRST ── */
 app.use(express.static(path.join(__dirname, "frontend")));
 
 /* ── API ROUTES ── */
@@ -25,8 +26,9 @@ app.use("/api/habits",   habitRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/ai",       aiRoutes);
 app.use("/api/xp",       xpRoutes);
+app.use("/api/features", featuresRoutes);
 
-/* ── FALLBACK: only for non-file routes ── */
+/* ── FALLBACK ── */
 app.use((req, res, next) => {
   if (req.path.match(/\.(js|css|html|png|ico|svg)$/)) {
     return res.status(404).send("File not found: " + req.path);
@@ -34,7 +36,7 @@ app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, "frontend", "index.html"));
 });
 
-const PORT = 3001;
+const PORT = 3002;
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });

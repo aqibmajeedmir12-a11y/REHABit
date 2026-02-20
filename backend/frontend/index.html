@@ -105,6 +105,9 @@
     <div class="nav-item" data-page="achievements">
       <i class="fa fa-trophy"></i><span>Achievements</span>
     </div>
+    <div class="nav-item" data-page="features">
+      <i class="fa fa-wand-magic-sparkles"></i><span>Smart Features</span>
+    </div>
 
     <div class="nav-section">Plan</div>
     <div class="nav-item" data-page="schedule">
@@ -230,14 +233,15 @@
      SCRIPTS — load order matters
 ══════════════════════════════════════ -->
 <!-- 1. Shared state, utils, auth, router, settings -->
-<script src="js/common.js"></script>
+<script src="/js/common.js"></script>
 <!-- 2. Page-specific renderers -->
-<script src="js/dashboard.js"></script>
-<script src="js/habits.js"></script>
-<script src="js/analytics.js"></script>
-<script src="js/insights.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/habits.js"></script>
+<script src="/js/analytics.js"></script>
+<script src="/js/insights.js"></script>
 <!-- 3. Achievements, Schedule, Calendar (ai.js) -->
 <script src="/js/ai.js"></script>
+<script src="/js/features.js"></script>
 
 <script>
 /* ══════════════════════════════════════
@@ -247,11 +251,12 @@
    page-habits, etc.) that JS relies on.
 ══════════════════════════════════════ */
 const PAGE_PARTS = [
-  "pages/dashboard.html",
-  "pages/habits.html",
-  "pages/schedule.html",
-  "pages/insights.html",
-  "pages/ai.html"   /* contains analytics, achievements, calendar, settings */
+  "/pages/dashboard.html",
+  "/pages/habits.html",
+  "/pages/schedule.html",
+  "/pages/insights.html",
+  "/pages/ai.html",   /* contains analytics, achievements, calendar, settings */
+  "/pages/features.html"
 ];
 
 async function loadPagePartials(){
@@ -317,6 +322,9 @@ function initApp(){
   const savedChat = localStorage.getItem("aiChat");
   const chatBox = document.getElementById("chat-box");
   if(savedChat && chatBox) chatBox.innerHTML = savedChat;
+
+  // Activate the dashboard page on load
+  goTo("dashboard");
 }
 
 // Kick off partial loading on DOM ready

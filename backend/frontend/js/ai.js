@@ -82,28 +82,172 @@ async function renderSchedule(){
   }
 }
 
-/* ─── CALENDAR ─── */
+/* ─── CALENDAR — LeetCode Heatmap Style ─── */
 async function renderCalendar(){
-  const grid = document.getElementById("calendar-grid");
-  if(!grid) return;
+  const container = document.getElementById("calendar-grid");
+  if(!container) return;
   try{
-    const res = await fetch(`${API_BASE}/api/habits/analytics/logs`);
+    const res  = await fetch(`${API_BASE}/api/habits/analytics/logs`);
     const data = await res.json();
     const heatmap = data.heatmap || {};
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    grid.innerHTML = "";
-    for(let d = 1; d <= daysInMonth; d++){
-      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-      const div = document.createElement("div");
-      div.className = "calendar-day" + (heatmap[dateStr] ? " active" : "");
-      div.textContent = d;
-      grid.appendChild(div);
+
+    /* Build a full 52-week grid (364 days back from today) */
+    const today    = new Date();
+    const DAY_MS   = 86400000;
+    const WEEKS    = 52;
+    const COLS     = WEEKS;
+
+    /* Go back to the nearest Sunday */
+    const startDate = new Date(today);
+    startDate.setDate(startDate.getDate() - (WEEKS * 7 - 1));
+
+    /* Day labels */
+    const dayLabels = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+    /* Month labels — collect which col each month starts */
+    const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const monthCols  = {};
+
+    /* Build all cells grouped by week column */
+    const weeks = [];
+    for(let w = 0; w < COLS; w++){
+      const week = [];
+      for(let d = 0; d < 7; d++){
+        const date    = new Date(startDate.getTime() + (w * 7 + d) * DAY_MS);
+        const dateStr = date.toISOString().split("T")[0];
+        const count   = heatmap[dateStr] || 0;
+        const isFuture = date > today;
+
+        /* Track month label position */
+        if(date.getDate() === 1){
+          monthCols[w] = monthNames[date.getMonth()];
+        }
+
+        week.push({ dateStr, count, isFuture, date });
+      }
+      weeks.push(week);
     }
+
+    /* Intensity levels (0-4) like LeetCode */
+    function getLevel(count){
+      if(count === 0) return 0;
+      if(count === 1) return 1;
+      if(count <= 3)  return 2;
+      if(count <= 6)  return 3;
+      return 4;
+    }
+
+    const levelColors = [
+      "rgba(255,255,255,.06)",   /* 0 - empty */
+      "rgba(124,58,237,.35)",    /* 1 - light */
+      "rgba(124,58,237,.55)",    /* 2 - medium */
+      "rgba(124,58,237,.78)",    /* 3 - strong */
+      "rgba(124,58,237,1)"       /* 4 - full */
+    ];
+
+    /* Render */
+    container.innerHTML = `
+      <div class="heatmap-wrap">
+
+        <!-- Month labels row -->
+        <div class="heatmap-month-row">
+          <div class="heatmap-day-spacer"></div>
+          <div class="heatmap-months">
+            ${weeks.map((_, w) => `
+              <div class="heatmap-month-label">${monthCols[w] || ""}</div>
+            `).join("")}
+          </div>
+        </div>
+
+        <!-- Day labels + grid -->
+        <div class="heatmap-body">
+          <div class="heatmap-day-labels">
+            ${dayLabels.map((d, i) => `
+              <div class="heatmap-day-label">${i % 2 === 1 ? d : ""}</div>
+            `).join("")}
+          </div>
+          <div class="heatmap-grid">
+            ${weeks.map(week => `
+              <div class="heatmap-col">
+                ${week.map(cell => {
+                  const level = cell.isFuture ? 0 : getLevel(cell.count);
+                  const label = cell.date.toLocaleDateString("en-US",{weekday:"short",year:"numeric",month:"short",day:"numeric"});
+                  const tip   = cell.count > 0
+                    ? `${label} · ${cell.count} habit${cell.count>1?"s":""} completed`
+                    : cell.isFuture
+                      ? label
+                      : `${label} · No habits completed`;
+                  return `<div
+                    class="heatmap-cell"
+                    style="background:${levelColors[level]};${cell.isFuture?"opacity:.25":""}"
+                    data-tip="${tip}"
+                  ></div>`;
+                }).join("")}
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="heatmap-legend">
+          <span style="font-size:11px;color:var(--muted)">Less</span>
+          ${levelColors.map(c => `<div class="heatmap-legend-cell" style="background:${c}"></div>`).join("")}
+          <span style="font-size:11px;color:var(--muted)">More</span>
+
+          <!-- Tooltip (shared, positioned by JS) -->
+          <div class="heatmap-tooltip" id="heatmap-tooltip"></div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="heatmap-stats">
+          <div class="heatmap-stat">
+            <span class="heatmap-stat-val" id="hm-total">${Object.values(heatmap).reduce((a,b)=>a+b,0)}</span>
+            <span class="heatmap-stat-label">Total completions</span>
+          </div>
+          <div class="heatmap-stat">
+            <span class="heatmap-stat-val" id="hm-days">${Object.keys(heatmap).length}</span>
+            <span class="heatmap-stat-label">Active days</span>
+          </div>
+          <div class="heatmap-stat">
+            <span class="heatmap-stat-val" id="hm-streak">${(()=>{
+              const sorted = Object.keys(heatmap).sort();
+              let best=0,cur=0,prev=null;
+              sorted.forEach(d=>{
+                if(prev){
+                  const diff=(new Date(d)-new Date(prev))/86400000;
+                  cur = diff===1 ? cur+1 : 1;
+                } else { cur=1; }
+                best=Math.max(best,cur);
+                prev=d;
+              });
+              return best;
+            })()}</span>
+            <span class="heatmap-stat-label">Best streak</span>
+          </div>
+        </div>
+      </div>`;
+
+    /* Tooltip logic */
+    const tooltip = document.getElementById("heatmap-tooltip");
+    document.querySelectorAll(".heatmap-cell").forEach(cell => {
+      cell.addEventListener("mouseenter", e => {
+        tooltip.textContent  = cell.dataset.tip;
+        tooltip.style.opacity = "1";
+        tooltip.style.visibility = "visible";
+      });
+      cell.addEventListener("mousemove", e => {
+        const wrap  = container.querySelector(".heatmap-wrap").getBoundingClientRect();
+        tooltip.style.left = (e.clientX - wrap.left + 12) + "px";
+        tooltip.style.top  = (e.clientY - wrap.top  - 36) + "px";
+      });
+      cell.addEventListener("mouseleave", () => {
+        tooltip.style.opacity    = "0";
+        tooltip.style.visibility = "hidden";
+      });
+    });
+
   } catch(err){
     console.error("Calendar error:", err);
-    grid.innerHTML = '<div style="color:var(--muted);font-size:13px">Unable to load calendar.</div>';
+    container.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px">Unable to load heatmap.</div>';
   }
 }

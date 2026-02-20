@@ -322,7 +322,8 @@ const pageTitles = {
   achievements: "Achievements",
   schedule: "Weekly Schedule",
   calendar: "Monthly Calendar",
-  settings: "Settings"
+  settings: "Settings",
+  features: "Smart Features"
 };
 
 function goTo(page){
@@ -344,6 +345,9 @@ function goTo(page){
   else if(page === "schedule")   setTimeout(() => renderSchedule(), 50);
   else if(page === "calendar")   renderCalendar();
   else if(page === "settings")   renderSettings();
+  else if(page === "features")   initFeatures();
+
+  syncUserUI();
 }
 
 /* ══════════════════════════════════════
@@ -377,8 +381,24 @@ async function loadSettings(){
     const goalEl = document.getElementById("set-goal");
     if(nameEl) nameEl.value = data.name;
     if(goalEl) goalEl.value = data.dailyGoal;
+
+    /* Sync name everywhere dynamically */
     const uname = document.querySelector(".user-name");
     if(uname) uname.textContent = data.name;
+
+    /* Sync avatar initials */
+    const avatar = document.querySelector(".user-avatar");
+    if(avatar){
+      const parts = (data.name || "U").split(" ");
+      avatar.textContent = parts.map(p=>p[0]).join("").toUpperCase().slice(0,2);
+    }
+
+    /* Update greeting with settings name */
+    if(data.name) updateGreeting(data.name);
+
+    /* Store in currentUser so all pages see it */
+    if(!window.currentUser) window.currentUser = {};
+    window.currentUser.name = data.name;
   } catch(err){
     console.error("Settings load error:", err);
   }
@@ -395,6 +415,13 @@ async function saveSettings(){
     });
     const uname = document.querySelector(".user-name");
     if(uname) uname.textContent = name;
+    const avatar = document.querySelector(".user-avatar");
+    if(avatar){
+      const parts = (name || "U").split(" ");
+      avatar.textContent = parts.map(p=>p[0]).join("").toUpperCase().slice(0,2);
+    }
+    if(window.currentUser) window.currentUser.name = name;
+    updateGreeting(name);
     showToast("✅ Settings saved");
   } catch(err){
     showToast("❌ Save failed");
@@ -580,13 +607,39 @@ async function loadXP(){
 
 async function loadDashboardXP(){
   try{
-    const res = await fetch(`${API_BASE}/api/xp`);
+    const res  = await fetch(`${API_BASE}/api/xp`);
     const data = await res.json();
-    document.getElementById("s-xp").textContent = data.xp || 0;
-    document.getElementById("dash-xp-disp").textContent = (data.xp || 0) + " XP";
-    document.getElementById("dash-xp-text").textContent = (data.xp || 0) + " XP";
-    const pct = ((data.xp || 0) % 500) / 500 * 100;
-    document.getElementById("dash-xpfill").style.width = pct + "%";
+    const xp    = data.xp    || 0;
+    const level = data.level || 1;
+    const nextLevelXP   = level * 500;
+    const remainingXP   = nextLevelXP - xp;
+
+    const levelTitles = {
+      1:"Beginner", 2:"Apprentice", 3:"Consistent", 4:"Focused",
+      5:"Dedicated", 6:"Expert", 7:"Master", 8:"Champion",
+      9:"Legend", 10:"Grandmaster"
+    };
+
+    const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+    set("s-xp",        xp);
+    set("dash-xp-disp", xp + " XP");
+    set("dash-xp-text", xp + " XP");
+    set("dash-level",   level);
+    set("dash-level-name", levelTitles[level] || "Legend");
+    set("sideLevel",    level);
+
+    /* Update "X XP to Level Y" text */
+    const remEl2 = document.getElementById("dash-xp-remaining");
+    if(remEl2) remEl2.textContent = remainingXP + " XP to Level " + (level + 1);
+    /* Also update the static text in dashboard level card */
+    document.querySelectorAll("[id='dash-level']").forEach(el => el.textContent = level);
+
+    const pct = (xp % 500) / 500 * 100;
+    const fill = document.getElementById("dash-xpfill");
+    if(fill) fill.style.width = pct + "%";
+
+    /* Update "of XXXX XP" text */
+    document.querySelectorAll(".xp-of-text").forEach(el => el.textContent = "of " + nextLevelXP + " XP");
   } catch(err){
     console.error("XP Load Error:", err);
   }
@@ -616,6 +669,44 @@ document.addEventListener("keydown", e => {
   if(e.key === "Escape") closeModal();
   if(e.ctrlKey && e.key === "n"){ e.preventDefault(); openModal(); }
   if(e.ctrlKey && e.key === "k"){ e.preventDefault(); showToast("🔍 Search coming soon!"); }
-  const keys = {"1":"dashboard","2":"habits","3":"analytics","4":"insights","5":"achievements","6":"schedule","7":"settings"};
+  const keys = {"1":"dashboard","2":"habits","3":"analytics","4":"insights","5":"achievements","6":"schedule","7":"settings","8":"features"};
   if(e.altKey && keys[e.key]){ e.preventDefault(); goTo(keys[e.key]); }
 });
+
+/* ══════════════════════════════════════
+   APPLE GLASS RIPPLE — tracks exact touch/click
+   position so ripple bursts from finger point
+══════════════════════════════════════ */
+document.addEventListener("pointerdown", e => {
+  const btn = e.target.closest(".btn, .icon-btn, .nav-item, .chart-tab, .auth-btn, .auth-social-btn");
+  if(!btn) return;
+  const rect = btn.getBoundingClientRect();
+  const rx   = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1) + "%";
+  const ry   = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1) + "%";
+  btn.style.setProperty("--rx", rx);
+  btn.style.setProperty("--ry", ry);
+}, {passive:true});
+
+/* ══════════════════════════════════════
+   DYNAMIC USER DATA — ensure all user-
+   specific elements update on page load
+   and whenever currentUser changes
+══════════════════════════════════════ */
+function syncUserUI(){
+  const user = window.currentUser;
+  if(!user) return;
+
+  /* Sidebar name */
+  const sideNameEl = document.querySelector(".user-name");
+  if(sideNameEl) sideNameEl.textContent = user.name || "User";
+
+  /* Sidebar avatar initials */
+  const avatarEl = document.querySelector(".user-avatar");
+  if(avatarEl){
+    const parts = (user.name || "U").split(" ");
+    avatarEl.textContent = parts.map(p => p[0]).join("").toUpperCase().slice(0,2);
+  }
+
+  /* Update greeting with real name */
+  updateGreeting(user.name || "User");
+}

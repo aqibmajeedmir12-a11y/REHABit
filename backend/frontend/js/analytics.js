@@ -27,7 +27,7 @@ async function renderAnalytics(){
 
     const logsRes = await fetch(`${API_BASE}/api/habits/analytics/logs`);
     const logsData = await logsRes.json();
-    buildHeatmap("full-heatmap", logsData.logs || []);
+    renderAnalyticsProgressChart(logsData.heatmap || {});
   } catch(err){
     console.error("Analytics error:", err);
   }
@@ -118,4 +118,118 @@ function renderTimeChartFromDB(data){
       </div>
       <div style="font-size:12px;font-weight:700;color:${s.color};width:30px">${s.pct}%</div>
     </div>`).join("");
+}
+
+/* ══════════════════════════════════════
+   ANALYTICS PROGRESS CHART — 30 days
+══════════════════════════════════════ */
+window._analyticsProgressData = null;
+
+function renderAnalyticsProgressChart(heatmap){
+  const days = [];
+  for(let i = 29; i >= 0; i--){
+    const d     = new Date();
+    d.setDate(d.getDate() - i);
+    const key   = d.toISOString().split("T")[0];
+    const label = i % 5 === 0
+      ? d.toLocaleDateString("en-US", {month:"short", day:"numeric"})
+      : "";
+    days.push({
+      label,
+      key,
+      completions: heatmap[key] || 0,
+      rate: heatmap[key]
+        ? Math.min(100, Math.round((heatmap[key] / Math.max(window.habits?.length || 1, 1)) * 100))
+        : 0
+    });
+  }
+  window._analyticsProgressData = days;
+  drawAnalyticsChart(days, "completions");
+}
+
+function switchAnalyticsChart(mode, btn){
+  document.querySelectorAll("#page-analytics .chart-tab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  if(window._analyticsProgressData) drawAnalyticsChart(window._analyticsProgressData, mode);
+}
+
+function drawAnalyticsChart(days, mode){
+  const container = document.getElementById("analytics-progress-chart");
+  const legend    = document.getElementById("analytics-progress-legend");
+  if(!container) return;
+
+  const values = days.map(d => d[mode]);
+  const max    = Math.max(...values, 1);
+  const colors = {
+    completions: ["#7c3aed","#3b82f6"],
+    rate:        ["#22c55e","#06b6d4"]
+  };
+  const labels = { completions: "Habits Completed", rate: "Completion Rate (%)" };
+  const [c1, c2] = colors[mode] || colors.completions;
+
+  const W      = container.clientWidth || 700;
+  const H      = 190;
+  const PAD_L  = 36, PAD_R = 12, PAD_T = 16, PAD_B = 28;
+  const chartW = W - PAD_L - PAD_R;
+  const chartH = H - PAD_T - PAD_B;
+
+  const pts = days.map((d, i) => ({
+    x:     PAD_L + (i / (days.length - 1)) * chartW,
+    y:     PAD_T + chartH - (values[i] / max) * chartH,
+    val:   values[i],
+    label: d.label
+  }));
+
+  function smooth(pts){
+    if(pts.length < 2) return `M${pts[0].x},${pts[0].y}`;
+    let path = `M${pts[0].x},${pts[0].y}`;
+    for(let i = 0; i < pts.length - 1; i++){
+      const cx = (pts[i].x + pts[i+1].x) / 2;
+      path += ` C${cx},${pts[i].y} ${cx},${pts[i+1].y} ${pts[i+1].x},${pts[i+1].y}`;
+    }
+    return path;
+  }
+
+  const linePath = smooth(pts);
+  const areaPath = linePath
+    + ` L${pts[pts.length-1].x},${PAD_T + chartH} L${pts[0].x},${PAD_T + chartH} Z`;
+
+  const yLabels = [0, Math.round(max / 2), max].map(v => ({
+    v, y: PAD_T + chartH - (v / max) * chartH
+  }));
+
+  container.innerHTML = `
+    <svg width="100%" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="overflow:visible">
+      <defs>
+        <linearGradient id="aLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="${c1}"/>
+          <stop offset="100%" stop-color="${c2}"/>
+        </linearGradient>
+        <linearGradient id="aAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="${c1}" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="${c1}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      ${yLabels.map(l => `
+        <line x1="${PAD_L}" y1="${l.y}" x2="${W - PAD_R}" y2="${l.y}"
+          stroke="rgba(255,255,255,.06)" stroke-width="1" stroke-dasharray="4 4"/>
+        <text x="${PAD_L - 5}" y="${l.y + 4}" fill="rgba(255,255,255,.3)"
+          font-size="9" text-anchor="end">${l.v}</text>
+      `).join("")}
+      <path d="${areaPath}" fill="url(#aAreaGrad)"/>
+      <path d="${linePath}" fill="none" stroke="url(#aLineGrad)" stroke-width="2" stroke-linecap="round"/>
+      ${pts.map(p => `
+        ${p.val > 0 ? `<circle cx="${p.x}" cy="${p.y}" r="3" fill="${c1}" stroke="rgba(15,15,30,1)" stroke-width="1.5"/>` : ""}
+        ${p.label ? `<text x="${p.x}" y="${PAD_T + chartH + 18}" fill="rgba(255,255,255,.4)" font-size="9" text-anchor="middle">${p.label}</text>` : ""}
+      `).join("")}
+    </svg>`;
+
+  if(legend) legend.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+      <div style="width:24px;height:3px;border-radius:2px;background:linear-gradient(90deg,${c1},${c2})"></div>
+      ${labels[mode]} — Last 30 days
+    </div>
+    <div style="margin-left:auto;font-size:12px;color:var(--muted)">
+      Total: <strong style="color:var(--text)">${values.reduce((a,b)=>a+b,0)}${mode==="rate"?"% avg":""}</strong>
+    </div>`;
 }

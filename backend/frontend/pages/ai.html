@@ -54,9 +54,17 @@
 
     <div class="card col-span-2">
       <div class="card-header">
-        <div class="card-title">Heatmap</div>
+        <div class="card-title">
+          <div class="card-title-icon" style="background:rgba(124,58,237,.15);color:var(--purple-light)"><i class="fa fa-chart-line"></i></div>
+          30-Day Progress Chart
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="chart-tab active" onclick="switchAnalyticsChart('completions',this)">Completions</button>
+          <button class="chart-tab" onclick="switchAnalyticsChart('rate',this)">Rate %</button>
+        </div>
       </div>
-      <div id="full-heatmap"></div>
+      <div id="analytics-progress-chart" style="height:200px;position:relative"></div>
+      <div id="analytics-progress-legend" style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap"></div>
     </div>
 
     <div class="card">
